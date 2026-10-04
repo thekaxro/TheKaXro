@@ -227,16 +227,7 @@ async function profile(env, request) {
   const name = clean(d.name, 80), phone = clean(d.phone, 40), address = clean(d.address, 300);
   if (name.length < 2) return bad("Name is required.");
   if (phone && !validPhone(phone)) return bad("Enter a valid phone number.");
-  await env.DB.prepare("UPDATE users SET name=?,phone=?,address=?,updated_at=CURRENT_TIMESTAMP WHERE id=?").bind(name, phone, address, user.id).run();
-  const updated = await env.DB.prepare("SELECT id,name,email,phone,address,role FROM users WHERE id=?").bind(user.id).first();
-  return json({ ok: true, user: publicUser(updated) });
-}
-
-const SIZE_PRICES = { '13X18 CM':199, A4:249, '30X40 CM':299, A3:399, '40X50 CM':449, A2:599, '50X70 CM':699, A1:899, '60X90 CM':999 };
-function getSizePrice(size) { return SIZE_PRICES[size] || SIZE_PRICES.A4; }
-
-async function couponPreview(env, request) {
-  const user = await auth(env, request); if (!user) return bad("Please sign in before applying a discount code.", 401);
+  await env.DB.prepare("UPDATE users SET name=?,phone=?,address=?,updated_at=CURRENT_TIMESTAMP WHERE id=?").bind(name, phone, address,ser) return bad("Please sign in before applying a discount code.", 401);
   const d = await body(request); const code = clean(d.code, 40).toUpperCase();
   const frameSize = clean(d.frameSize, 10).toUpperCase();
   const items = Array.isArray(d.items) ? d.items.slice(0, 30) : [];
@@ -275,12 +266,7 @@ async function createOrder(env, request) {
   if (!rateLimit(request, `order:${user.id}`, 12, 10 * 60 * 1000)) return bad("Too many order attempts. Please try again later.", 429);
   const d = await body(request);
   const customerName = clean(d.customerName, 100), em = email(d.email), phone = clean(d.phone, 40), address = clean(d.address, 500), utr = clean(d.utr, 80), couponCode = clean(d.couponCode, 40).toUpperCase();
-  const frameSize = clean(d.frameSize, 10).toUpperCase();
-  const personalizationType = clean(d.personalizationType, 20).toLowerCase();
-  const personalizationValue = String(d.personalizationValue || "").trim();
-  const allowedSizes = ["13X18 CM", "A4", "30X40 CM", "A3", "40X50 CM", "A2", "50X70 CM", "A1", "60X90 CM"];
-  const items = Array.isArray(d.items) ? d.items.slice(0, 30) : [];
-  if (!customerName || !validEmail(em) || !phone || !validPhone(phone) || !address || !utr || !/^[A-Za-z0-9 ._\-/]{4,80}$/.test(utr) || !items.length || !allowedSizes.includes(frameSize)) return bad("Complete your name, email, phone, address, frame size, UTR and cart items.");
+  conest(utr) || !items.length || !allowedSizes.includes(frameSize)) return bad("Complete your name, email, phone, address, frame size, UTR and cart items.");
   const ids = [...new Set(items.map(x => Number(x.id)).filter(Number.isInteger))];
   if (!ids.length) return bad("Your cart is empty.");
   const placeholders = ids.map(() => "?").join(",");
