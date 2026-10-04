@@ -80,7 +80,16 @@ body:has(.reset-page:not(:empty)) > *:not(.reset-page) { display:none; }
 .personalize-modal > .button{width:100%;margin-top:18px;text-align:center}
 @media(max-width:520px){.personalize-choice{grid-template-columns:1fr}.personalize-modal{padding:24px 20px}.upload-drop{min-height:190px}}
 
-.category-prompt{grid-column:1/-1;display:grid;gap:8px;min-height:180px;place-items:center;text-align:center;padding:36px 24px;border:1px dashed var(--line);background:rgba(255,247,229,.22);color:var(--muted)}.category-prompt strong{font-family:Georgia,serif;font-size:24px;font-weight:500;color:var(--ink)}.category-prompt span{max-width:460px;line-height:1.6;font-size:13px}.shop-tools{display:flex;gap:8px;flex-wrap:wrap}.shop-tools input,.shop-tools select{min-width:150px}@media(max-width:760px){.shop-tools{width:100%}.shop-tools input,.shop-tools select{width:100%}}
+.category-prompt{grid-column:1/-1;display:grid;gap:8px;place-items:center;text-align:center;padding:36px 24px;border:1px dashed var(--line);background:rgba(255,247,229,.22);color:var(--muted)}.category-prompt strong{font-family:Georgia,serif;font-size:24px;font-weight:500;color:var(--ink)}.category-prompt span{max-width:460px;line-height:1.6;font-size:13px}.shop-tools{display:flex;gap:8px;flex-wrap:wrap}.shop-tools input,.shop-tools select{min-width:150px}@media(max-width:760px){.shop-tools{width:100%}.shop-tools input,.shop-tools select{width:100%}}
 
 .shop-category-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:8px 0 22px}.shop-category-card{appearance:none;text-align:left;border:1px solid var(--line);background:rgba(255,247,229,.25);color:var(--ink);padding:20px 18px;min-height:92px;cursor:pointer;display:flex;flex-direction:column;justify-content:space-between;transition:.18s}.shop-category-card:hover,.shop-category-card.active{background:rgba(255,247,229,.62);border-color:rgba(46,36,24,.45);transform:translateY(-1px)}.shop-category-card.custom-category{background:rgba(36,27,18,.06)}.shop-category-name{font:600 27px "Cormorant Garamond",serif}.shop-category-count{font-size:11px;color:var(--muted);letter-spacing:.2px}.shop-category-count b{color:var(--ink);font-weight:700}.shop-category-count span{float:right;font-size:14px;color:var(--ink)}
 @media(max-width:850px){.shop-category-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:520px){.shop-category-grid{grid-template-columns:1fr 1fr;gap:8px}.shop-category-card{padding:15px 12px;min-height:82px}.shop-category-name{font-size:22px}}
+
+/* KaXro compact empty category state */
+.category-prompt{
+  min-height:0 !important;
+  margin:0 !important;
+  padding:24px 20px !important;
+}
+
+.products:empty{display:none!important;min-height:0!important;height:0!important;}

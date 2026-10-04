@@ -362,7 +362,6 @@ async function openCheckout() {
   $('orderEmail').value = currentUser.email || '';
   $('orderPhone').value = currentUser.phone || '';
   $('orderAddress').value = currentUser.address || '';
-  $('frameSize').value = '13X18 CM';
   $('orderUtr').value = '';
   $('orderCoupon').value = '';
   $('couponResult').textContent = '';

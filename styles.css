@@ -61,3 +61,10 @@
 .reset-page { display:none; min-height:70vh; max-width:560px; margin:0 auto; padding:90px 20px; }
 body:has(.reset-page:not(:empty)) > *:not(.reset-page) { display:none; }
 .reset-page:not(:empty) { display:block; }
+
+/* KaXro compact empty category state */
+.category-prompt{
+  min-height:0 !important;
+  margin:0 !important;
+  padding:24px 20px !important;
+}
