@@ -67,6 +67,7 @@ async function loadProducts() {
     $('sortFilter').disabled = !hasCategory;
     if (!hasCategory) {
       products = [];
+      renderCategoryCards(r.categoryCounts || {});
       $('shopTitle').textContent = 'Frames';
       $('shopContext').textContent = 'Choose a category to browse frames. Products are shown one category at a time.';
       renderProducts();
@@ -80,7 +81,20 @@ async function loadProducts() {
     $('products').innerHTML = `<p class="muted">${escapeHtml(e.message)}</p>`;
   }
 }
+function renderCategoryCards(counts = {}) {
+  const wrap = $('categoryCards');
+  if (!wrap) return;
+  wrap.innerHTML = STORE_CATEGORIES.map(category => {
+    const count = Number(counts[category] || 0);
+    const custom = category === 'Personalize';
+    return `<button type="button" data-category="${escapeHtml(category)}" class="shop-category-card ${custom ? 'custom-category' : ''}" onclick="filterCategory('${category}')">
+      <span class="shop-category-name">${escapeHtml(category)}</span>
+      <span class="shop-category-count"><b>${count}</b> ${custom ? (count === 1 ? 'custom frame' : 'custom frames') : (count === 1 ? 'frame' : 'frames')} <span>→</span></span>
+    </button>`;
+  }).join('');
+}
 function updateCategoryCounts(counts) {
+  renderCategoryCards(counts);
   STORE_CATEGORIES.forEach(category => {
     const count = Number(counts[category] || 0);
     const el = $(`count-${category}`);
@@ -361,27 +375,7 @@ async function openCheckout() {
     personalizeFileName = '';
   } else if (personalizeFileData) {
     $('personalizeFileName').textContent = `Selected: ${personalizeFileName || 'Uploaded image'} (optimized)`;
-  } else if ($('personalizeLink').value.trim()) {
-    $('personalizeFileName').textContent = 'Pinterest reference selected.';
-  }
-  updatePersonalizeBox();
-  renderCheckoutSummary();
-  openModal('checkoutModal');
-}
-const SIZE_PRICES = {
-  '13X18 CM': 199,
-  'A4': 249,
-  '30X40 CM': 299,
-  'A3': 399,
-  '40X50 CM': 449,
-  'A2': 599,
-  '50X70 CM': 699,
-  'A1': 899,
-  '60X90 CM': 999
-};
-function sizePrice(size) { return SIZE_PRICES[size] || SIZE_PRICES.A4; }
-function renderCheckoutSummary(discount = 0, couponCode = '') {
-  const size = $('frameSize')?.value || 'A4';
+  } else if ($('person size = $('frameSize')?.value || 'A4';
   const unit = sizePrice(size);
   const subtotal = cart.reduce((s,p) => s + unit*p.quantity, 0);
   const total = Math.max(0, subtotal - discount);
