@@ -1,0 +1,30 @@
+THE KAXRO — PERSONALIZE FRAME UPDATE
+
+What this update adds
+- A real "Custom Frame" item in the Personalize collection.
+- "Customize Your Frame" button instead of a normal Add to Cart button.
+- Upload your own PNG/JPG/WebP photo.
+- Browser-side resize/compression before the image is sent with the order.
+- Paste a Pinterest or pin.it link instead.
+- Image/link reference is attached to the order and visible to the owner.
+- Existing checkout personalization validation remains in place.
+
+Files changed
+- index.html
+- script.js
+- style.css
+- src/index.js (existing backend retained; no new API endpoint required)
+- migrations/0008_personalize_product.sql
+- assets/personalize-frame.svg
+- DEPLOYMENT.md
+
+Deploy
+1. Replace the project files with this package.
+2. Keep the existing thekaxro-db database and existing bindings/secrets.
+3. Deploy the Worker/site.
+4. Apply the migration:
+   npx wrangler d1 migrations apply thekaxro-db --remote
+5. Open the site, tap Personalize, choose Custom Frame, then upload a photo or paste a Pinterest link.
+
+Important
+The current implementation stores the optimized upload reference directly in the order record. No R2 bucket or extra secret is required.

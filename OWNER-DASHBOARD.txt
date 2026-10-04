@@ -1,0 +1,22 @@
+THE KAXRO OWNER DASHBOARD
+
+Owner email: thekaxro@gmail.com
+
+The site already contains the protected owner dashboard at /admin and the admin panel.
+Use the owner account password to sign in.
+
+Dashboard includes:
+- Order list and customer details
+- Payment/UTR verification
+- Order status updates
+- Order notes
+- CSV export
+- Product management
+- Customer management
+- Coupons and store settings
+
+Security:
+Owner access is enforced server-side and restricted to the owner role AND the owner email above.
+Do not put your owner password in source files.
+
+Deploy with your normal Cloudflare Workers deployment process. Ensure the existing D1 binding (DB) and ASSETS binding remain configured.
