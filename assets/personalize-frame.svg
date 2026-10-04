@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1100">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f7e8c4"/>
+      <stop offset="0.55" stop-color="#e9cb91"/>
+      <stop offset="1" stop-color="#f6dfae"/>
+    </linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-opacity=".18"/>
+    </filter>
+  </defs>
+  <rect width="900" height="1100" fill="url(#bg)"/>
+  <rect x="95" y="85" width="710" height="930" rx="8" fill="#fffaf0" filter="url(#shadow)"/>
+  <rect x="130" y="120" width="640" height="650" fill="#241b12"/>
+  <circle cx="450" cy="385" r="170" fill="#d5b06d" opacity=".8"/>
+  <path d="M130 620 C260 480 330 690 450 530 C570 370 650 650 770 500 L770 770 L130 770 Z" fill="#b28743" opacity=".7"/>
+  <text x="450" y="865" text-anchor="middle" font-family="Georgia,serif" font-size="58" fill="#2e2418">YOUR IMAGE</text>
+  <text x="450" y="925" text-anchor="middle" font-family="Arial,sans-serif" font-size="18" letter-spacing="6" fill="#766247">PERSONALIZE YOUR FRAME</text>
+  <text x="450" y="965" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" fill="#766247">UPLOAD A PHOTO • OR USE PINTEREST INSPIRATION</text>
+</svg>
