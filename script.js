@@ -9,6 +9,17 @@ let personalizeMode = 'upload';
 let adminCache = { orders: [], products: [], customers: [], coupons: [], settings: {} };
 const STORE_CATEGORIES = ['Anime','Games','Cars','Minimal','Animals','Fantasy','Personalize'];
 const SIZE_PRICES = { A4:249, A3:399, A2:599, A1:899 };
+// Only these products appear in the homepage's Selected Frames section.
+// Change the names here whenever you want to swap the featured picks.
+const HOME_FEATURED_PRODUCTS = [
+  'Flame Dragon',
+  'Tactical Skull',
+  'McLaren Senna',
+  'Mountain Sky',
+  'Neon Drive',
+  'Custom frame'
+];
+
 const $ = id => document.getElementById(id);
 const money = n => `₹${Number(n || 0).toLocaleString('en-IN')}`;
 
@@ -57,6 +68,68 @@ async function loadStoreSettings() {
     if (contact) contact.href = `mailto:${s.support_email || 'thekaxro@gmail.com'}`;
   } catch {}
 }
+function featuredCard(p) {
+  const personalized = String(p.category || '').toLowerCase() === 'personalize';
+  const soldOut = Number(p.stock || 0) <= 0;
+  return `
+    <article class="card featured-card">
+      <button class="wish" aria-label="Save ${escapeHtml(p.name)}" onclick="toggleWishlist(${p.id})">${wishlist.has(p.id) ? 'Saved' : 'Save'}</button>
+      <div class="card-img">${p.image ? `<img loading="lazy" src="${escapeHtml(p.image)}" alt="${escapeHtml(p.name)}" onerror="this.style.display='none';this.nextElementSibling.hidden=false"><div class="placeholder" hidden>Frame</div>` : '<div class="placeholder">Frame</div>'}</div>
+      <span class="featured-category">${escapeHtml(p.category || 'Frame')}</span>
+      <h3>${escapeHtml(p.name)}</h3>
+      <div class="price">From ${money(SIZE_PRICES.A4)}${soldOut ? ' · Out of stock' : ''}</div>
+      <button class="add" ${soldOut ? 'disabled' : ''} onclick="${personalized ? `openPersonalizeForFeatured(${p.id})` : `addToCartFromFeatured(${p.id})`}">${soldOut ? 'Out of Stock' : (personalized ? 'Customize Your Frame' : 'Add to Cart')}</button>
+    </article>`;
+}
+function renderFeaturedProducts(allProducts = []) {
+  const wrap = $('featuredProducts');
+  if (!wrap) return;
+  const byName = new Map(allProducts.map(p => [String(p.name || '').trim().toLowerCase(), p]));
+  const selected = HOME_FEATURED_PRODUCTS
+    .map(name => byName.get(name.toLowerCase()))
+    .filter(Boolean)
+    .filter(p => Number(p.active ?? 1) !== 0);
+  wrap.innerHTML = selected.length
+    ? selected.map(featuredCard).join('')
+    : '<p class="muted">Selected frames will appear here soon.</p>';
+}
+async function loadFeaturedProducts() {
+  try {
+    const r = await api('/api/products');
+    renderFeaturedProducts(r.products || []);
+  } catch {
+    const wrap = $('featuredProducts');
+    if (wrap) wrap.innerHTML = '<p class="muted">Selected frames could not be loaded right now.</p>';
+  }
+}
+function addToCartFromFeatured(id) {
+  addToCartById(id);
+}
+function openPersonalizeForFeatured(id) {
+  // Featured products are not necessarily in the current category list.
+  api('/api/products').then(r => {
+    const p = (r.products || []).find(x => Number(x.id) === Number(id));
+    if (!p) return toast('This frame is no longer available.');
+    products = r.products || [];
+    openPersonalizeForProduct(id);
+  }).catch(() => toast('This frame is currently unavailable.'));
+}
+function addToCartById(id) {
+  const p = products.find(x => Number(x.id) === Number(id));
+  if (p) return addToCart(id);
+  api('/api/products').then(r => {
+    products = r.products || [];
+    addToCart(id);
+  }).catch(() => toast('This frame is currently unavailable.'));
+}
+function showAllFrames() {
+  $('categoryFilter').value = '';
+  $('searchInput').value = '';
+  renderCategoryCards(window.__kaxroCategoryCounts || {});
+  loadProducts();
+  requestAnimationFrame(() => $('shop')?.scrollIntoView({ behavior:'smooth', block:'start' }));
+}
+
 async function loadProducts() {
   const qRaw = ($('searchInput')?.value || '').trim();
   const cRaw = $('categoryFilter')?.value || '';
@@ -381,7 +454,6 @@ async function openCheckout() {
   renderCheckoutSummary();
   openModal('checkoutModal');
 }
-const SIZE_PRICES = { A4:249, A3:399, A2:599, A1:899 };
 function sizePrice(size) { return SIZE_PRICES[size] || SIZE_PRICES.A4; }
 function renderCheckoutSummary(discount = 0, couponCode = '') {
   const size = $('frameSize')?.value || 'A4';
@@ -544,5 +616,5 @@ $('personalizeLink')?.addEventListener('input', handlePersonalizeLink);
 $('personalizeFile')?.addEventListener('change', handlePersonalizeFile);
 $('frameSize')?.addEventListener('change', () => { $('couponResult').dataset.discount = '0'; $('couponResult').dataset.code = ''; renderCheckoutSummary(); });
 
-if (location.pathname === '/reset-password') { renderResetPassword(); } else { loadSession().finally(() => { loadProducts(); loadStoreSettings(); if (location.pathname === '/admin' || location.pathname === '/admin/') openAdmin(); if (new URLSearchParams(location.search).get('account') === 'login') openAccount('login'); }); }
+if (location.pathname === '/reset-password') { renderResetPassword(); } else { loadSession().finally(() => { loadProducts(); loadFeaturedProducts(); loadStoreSettings(); if (location.pathname === '/admin' || location.pathname === '/admin/') openAdmin(); if (new URLSearchParams(location.search).get('account') === 'login') openAccount('login'); }); }
 renderCart();

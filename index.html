@@ -16,7 +16,47 @@
 
 <main>
 <section class="hero"><div class="hero-content"><p class="eyebrow">THE KAXRO • FRAMED WALL ART</p><h1>Make your walls<br><em>worth looking at.</em></h1><p class="hero-text">Premium framed wall art designed to bring character, style and personality to your space.</p><a class="button" href="#shop">Explore Frames</a></div><div class="hero-art"><img src="brand-theme.png" alt="The KaXro brand artwork"></div></section>
-<section id="collections" class="section"><div class="section-head"><div><p class="eyebrow">CURATED FOR YOU</p><h2>Collections</h2></div></div><div class="collections"><a href="#shop" class="collection" onclick="filterCategory('Anime')">Anime <span class="category-meta"><b id="count-Anime">0</b> frames · →</span></a><a href="#shop" class="collection" onclick="filterCategory('Games')">Games <span class="category-meta"><b id="count-Games">0</b> frames · →</span></a><a href="#shop" class="collection" onclick="filterCategory('Cars')">Cars <span class="category-meta"><b id="count-Cars">0</b> frames · →</span></a><a href="#shop" class="collection" onclick="filterCategory('Minimal')">Minimal <span class="category-meta"><b id="count-Minimal">0</b> frames · →</span></a><a href="#shop" class="collection" onclick="filterCategory('Animals')">Animals <span class="category-meta"><b id="count-Animals">0</b> frames · →</span></a><a href="#shop" class="collection" onclick="filterCategory('Fantasy')">Fantasy <span class="category-meta"><b id="count-Fantasy">0</b> frames · →</span></a><a href="#shop" class="collection" onclick="filterCategory('Personalize')">Personalize <span class="category-meta"><b id="count-Personalize">0</b> custom frames · →</span></a></div></section>
+<section id="featured" class="section featured-section">
+  <div class="section-head featured-head">
+    <div>
+      <p class="eyebrow">HANDPICKED FOR YOU</p>
+      <h2>Selected Frames</h2>
+      <p class="muted">A few of our picks — not the whole catalog.</p>
+    </div>
+    <a class="button secondary featured-view-all" href="#shop" onclick="showAllFrames()">View all frames</a>
+  </div>
+  <div id="featuredProducts" class="products featured-products"></div>
+</section>
+<section id="collections" class="section"><div class="section-head"><div><p class="eyebrow">CURATED FOR YOU</p><h2>Collections</h2></div></div><div class="collections page-category-grid">
+  <button type="button" class="collection page-category" onclick="filterCategory('Anime')">
+    <span><strong>Anime</strong><small>Character art & cinematic scenes</small></span>
+    <span class="category-meta"><b id="count-Anime">0</b> frames <i>→</i></span>
+  </button>
+  <button type="button" class="collection page-category" onclick="filterCategory('Games')">
+    <span><strong>Games</strong><small>Gaming & fantasy-inspired art</small></span>
+    <span class="category-meta"><b id="count-Games">0</b> frames <i>→</i></span>
+  </button>
+  <button type="button" class="collection page-category" onclick="filterCategory('Cars')">
+    <span><strong>Cars</strong><small>Automotive prints for your wall</small></span>
+    <span class="category-meta"><b id="count-Cars">0</b> frames <i>→</i></span>
+  </button>
+  <button type="button" class="collection page-category" onclick="filterCategory('Minimal')">
+    <span><strong>Minimal</strong><small>Clean, understated designs</small></span>
+    <span class="category-meta"><b id="count-Minimal">0</b> frames <i>→</i></span>
+  </button>
+  <button type="button" class="collection page-category" onclick="filterCategory('Animals')">
+    <span><strong>Animals</strong><small>Wildlife & animal artwork</small></span>
+    <span class="category-meta"><b id="count-Animals">0</b> frames <i>→</i></span>
+  </button>
+  <button type="button" class="collection page-category" onclick="filterCategory('Fantasy')">
+    <span><strong>Fantasy</strong><small>Dark, magical & epic artwork</small></span>
+    <span class="category-meta"><b id="count-Fantasy">0</b> frames <i>→</i></span>
+  </button>
+  <button type="button" class="collection page-category page-category-custom" onclick="filterCategory('Personalize')">
+    <span><strong>Personalize</strong><small>Create a frame from your own image</small></span>
+    <span class="category-meta"><b id="count-Personalize">0</b> custom <i>→</i></span>
+  </button>
+</div></section>
 <section id="shop" class="section"><div class="section-head"><div><p class="eyebrow">SHOP BY CATEGORY</p><h2 id="shopTitle">Frames</h2><p id="shopContext" class="muted">Select a category below to browse its frames.</p></div></div><div id="categoryCards" class="shop-category-grid"></div><div id="shopTools" class="shop-tools hidden"><input id="searchInput" type="search" placeholder="Search within category" oninput="loadProducts()" disabled><select id="categoryFilter" onchange="loadProducts()" aria-hidden="true" tabindex="-1" style="display:none"><option value="">Category</option><option value="Anime">Anime</option><option value="Games">Games</option><option value="Cars">Cars</option><option value="Minimal">Minimal</option><option value="Animals">Animals</option><option value="Fantasy">Fantasy</option><option value="Personalize">Personalize</option></select><select id="sortFilter" onchange="renderProducts()" disabled><option value="newest">Newest</option><option value="price-low">Price: low to high</option><option value="price-high">Price: high to low</option><option value="name">Name: A–Z</option></select></div><div id="products" class="products"></div></section>
 <section id="recent" class="section hidden"><div class="section-head"><div><p class="eyebrow">YOUR ACTIVITY</p><h2>Recently Viewed</h2></div></div><div id="recentProducts" class="products"></div></section>
 <section id="about" class="about section"><div><p class="eyebrow">ABOUT THE KAXRO</p><h2>Framed art that belongs<br>on your wall.</h2></div><p>We create and curate framed wall art made for people who want their rooms to feel like their own. Your account keeps orders, saved items and activity together.</p></section>
@@ -34,6 +74,6 @@
 <div id="resetContent" class="reset-page"></div>
 <div id="adminModal" class="modal"><div class="modal-card admin-card"><button class="modal-close" onclick="closeModal('adminModal')">×</button><div id="adminContent"></div></div></div>
 <div id="toast" class="toast"></div>
-<script src="script.js?v=20261005" defer></script>
+<script src="script.js?v=20261005-featured" defer></script>
 </body>
 </html>
