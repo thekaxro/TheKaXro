@@ -227,7 +227,17 @@ async function profile(env, request) {
   const name = clean(d.name, 80), phone = clean(d.phone, 40), address = clean(d.address, 300);
   if (name.length < 2) return bad("Name is required.");
   if (phone && !validPhone(phone)) return bad("Enter a valid phone number.");
-  await env.DB.prepare("UPDATE users SET name=?,phone=?,address=?,updated_at=CURRENT_TIMESTAMP WHERE id=?").bind(name, phone, address,ser) return bad("Please sign in before applying a discount code.", 401);
+  await env.DB.prepare("UPDATE users SET name=?,phone=?,address=?,updated_at=CURRENT_TIMESTAMP WHERE id=?").bind(name, phone, address, user.id).run();
+  const updated = await env.DB.prepare("SELECT id,name,email,phone,address,role FROM users WHERE id=?").bind(user.id).first();
+  return json({ ok: true, user: publicUser(updated) });
+}
+
+const SIZE_PRICES = { A4:249, A3:399, A2:599, A1:899 };
+const STORE_CATEGORIES = ['Anime','Games','Cars','Minimal','Animals','Fantasy','Personalize'];
+function getSizePrice(size) { return SIZE_PRICES[size] || SIZE_PRICES.A4; }
+
+async function couponPreview(env, request) {
+  const user = await auth(env, request); if (!user) return bad("Please sign in before applying a discount code.", 401);
   const d = await body(request); const code = clean(d.code, 40).toUpperCase();
   const frameSize = clean(d.frameSize, 10).toUpperCase();
   const items = Array.isArray(d.items) ? d.items.slice(0, 30) : [];
@@ -266,7 +276,12 @@ async function createOrder(env, request) {
   if (!rateLimit(request, `order:${user.id}`, 12, 10 * 60 * 1000)) return bad("Too many order attempts. Please try again later.", 429);
   const d = await body(request);
   const customerName = clean(d.customerName, 100), em = email(d.email), phone = clean(d.phone, 40), address = clean(d.address, 500), utr = clean(d.utr, 80), couponCode = clean(d.couponCode, 40).toUpperCase();
-  conest(utr) || !items.length || !allowedSizes.includes(frameSize)) return bad("Complete your name, email, phone, address, frame size, UTR and cart items.");
+  const frameSize = clean(d.frameSize, 10).toUpperCase();
+  const personalizationType = clean(d.personalizationType, 20).toLowerCase();
+  const personalizationValue = String(d.personalizationValue || "").trim();
+  const allowedSizes = ["A4", "A3", "A2", "A1"];
+  const items = Array.isArray(d.items) ? d.items.slice(0, 30) : [];
+  if (!customerName || !validEmail(em) || !phone || !validPhone(phone) || !address || !utr || !/^[A-Za-z0-9 ._\-/]{4,80}$/.test(utr) || !items.length || !allowedSizes.includes(frameSize)) return bad("Complete your name, email, phone, address, frame size, UTR and cart items.");
   const ids = [...new Set(items.map(x => Number(x.id)).filter(Number.isInteger))];
   if (!ids.length) return bad("Your cart is empty.");
   const placeholders = ids.map(() => "?").join(",");
@@ -418,9 +433,11 @@ async function adminUpdateOrder(env, request, id) {
 }
 async function adminProducts(env) { const rows = (await env.DB.prepare("SELECT * FROM products ORDER BY id DESC").all()).results || []; return json({ ok: true, products: rows }); }
 async function adminProductSave(env, request, id = null) {
-  const d = await body(request); const name = clean(d.name, 100), description = clean(d.description, 500), image = clean(d.image, 500), category = clean(d.category, 50) || "Minimal";
+  const d = await body(request); const name = clean(d.name, 100), description = clean(d.description, 500), image = clean(d.image, 500), requestedCategory = clean(d.category, 50) || "Minimal";
+  const category = STORE_CATEGORIES.includes(requestedCategory) ? requestedCategory : "";
   const price = money(d.price), stock = Math.max(0, Math.floor(Number(d.stock) || 0));
   if (!name || price <= 0) return bad("Product name and a price greater than zero are required.");
+  if (!category) return bad("Choose one of the available frame categories.");
   if (id) {
     const result = await env.DB.prepare("UPDATE products SET name=?,description=?,price=?,image=?,category=?,stock=?,active=?,updated_at=CURRENT_TIMESTAMP WHERE id=?").bind(name, description, price, image, category, stock, d.active ? 1 : 0, id).run();
     if (!result.meta.changes) return bad("Product not found.", 404);
