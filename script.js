@@ -59,67 +59,65 @@ async function loadStoreSettings() {
 async function loadProducts() {
   const qRaw = ($('searchInput')?.value || '').trim();
   const cRaw = $('categoryFilter')?.value || '';
+  const hasCategory = STORE_CATEGORIES.includes(cRaw);
+  const tools = $('shopTools');
   try {
-    const r = await api(`/api/products?q=${encodeURIComponent(qRaw)}&category=${encodeURIComponent(cRaw)}`);
+    const r = await api(`/api/products?q=${encodeURIComponent(hasCategory ? qRaw : '')}&category=${encodeURIComponent(hasCategory ? cRaw : '')}`);
     updateCategoryCounts(r.categoryCounts || {});
-    const hasCategory = STORE_CATEGORIES.includes(cRaw);
     $('searchInput').disabled = !hasCategory;
     $('sortFilter').disabled = !hasCategory;
+    if (tools) tools.classList.toggle('hidden', !hasCategory);
     if (!hasCategory) {
       products = [];
-      renderCategoryCards(r.categoryCounts || {});
       $('shopTitle').textContent = 'Frames';
-      $('shopContext').textContent = 'Choose a category to browse frames. Products are shown one category at a time.';
+      $('shopContext').textContent = 'Select a category below to browse its frames.';
       renderProducts();
       return;
     }
     products = r.products || [];
     $('shopTitle').textContent = `${cRaw} Frames`;
-    $('shopContext').textContent = `${products.length} ${products.length === 1 ? 'frame' : 'frames'} in ${cRaw}. Search and sorting stay within this category.`;
+    $('shopContext').textContent = `${products.length} ${products.length === 1 ? 'frame' : 'frames'} in ${cRaw}.`;
     renderProducts();
   } catch (e) {
-    $('products').innerHTML = `<p class="muted">${escapeHtml(e.message)}</p>`;
+    products = [];
+    $('products').innerHTML = `<p class="muted shop-error">${escapeHtml(e.message)}</p>`;
   }
 }
 function renderCategoryCards(counts = {}) {
   const wrap = $('categoryCards');
   if (!wrap) return;
+  const selected = $('categoryFilter')?.value || '';
   wrap.innerHTML = STORE_CATEGORIES.map(category => {
     const count = Number(counts[category] || 0);
     const custom = category === 'Personalize';
-    return `<button type="button" data-category="${escapeHtml(category)}" class="shop-category-card ${custom ? 'custom-category' : ''}" onclick="filterCategory('${category}')">
+    const active = category === selected ? ' active' : '';
+    return `<button type="button" data-category="${escapeHtml(category)}" class="shop-category-card ${custom ? 'custom-category' : ''}${active}" onclick="filterCategory('${category}')">
       <span class="shop-category-name">${escapeHtml(category)}</span>
       <span class="shop-category-count"><b>${count}</b> ${custom ? (count === 1 ? 'custom frame' : 'custom frames') : (count === 1 ? 'frame' : 'frames')} <span>→</span></span>
     </button>`;
   }).join('');
 }
 function updateCategoryCounts(counts) {
+  window.__kaxroCategoryCounts = counts || {};
   renderCategoryCards(counts);
   STORE_CATEGORIES.forEach(category => {
     const count = Number(counts[category] || 0);
     const el = $(`count-${category}`);
     if (el) el.textContent = count;
   });
-  const select = $('categoryFilter');
-  if (select) {
-    [...select.options].forEach(option => {
-      if (!option.value) return;
-      const count = Number(counts[option.value] || 0);
-      option.textContent = `${option.value} (${count})`;
-    });
-  }
 }
 function filterCategory(c) {
-  setTimeout(() => {
-    $('categoryFilter').value = c;
-    $('searchInput').value = '';
-    loadProducts();
-  }, 0);
+  if (!STORE_CATEGORIES.includes(c)) return;
+  $('categoryFilter').value = c;
+  $('searchInput').value = '';
+  renderCategoryCards(window.__kaxroCategoryCounts || {});
+  loadProducts();
+  requestAnimationFrame(() => $('shop')?.scrollIntoView({ behavior:'smooth', block:'start' }));
 }
 function renderProducts() {
   const category = $('categoryFilter')?.value || '';
   if (!STORE_CATEGORIES.includes(category)) {
-    $('products').innerHTML = '<div class="category-prompt"><strong>Choose a category</strong><span>Pick Anime, Games, Cars, Minimal, Animals, Fantasy or Personalize to view frames.</span></div>';
+    $('products').innerHTML = '';
     return;
   }
   const sort = $('sortFilter')?.value || 'newest';
@@ -131,8 +129,8 @@ function renderProducts() {
   });
   $('products').innerHTML = ordered.length ? ordered.map(p => `
     <article class="card">
-      <button class="wish" onclick="toggleWishlist(${p.id})">${wishlist.has(p.id) ? 'Saved' : 'Save'}</button>
-      <div class="card-img">${p.image ? `<img src="${escapeHtml(p.image)}" alt="${escapeHtml(p.name)}">` : '<div class="placeholder">Frame</div>'}</div>
+      <button class="wish" aria-label="Save ${escapeHtml(p.name)}" onclick="toggleWishlist(${p.id})">${wishlist.has(p.id) ? 'Saved' : 'Save'}</button>
+      <div class="card-img">${p.image ? `<img loading="lazy" src="${escapeHtml(p.image)}" alt="${escapeHtml(p.name)}" onerror="this.style.display='none';this.nextElementSibling.hidden=false"><div class="placeholder" hidden>Frame</div>` : '<div class="placeholder">Frame</div>'}</div>
       <h3>${escapeHtml(p.name)}</h3>
       <div class="price">${money(p.price)}${p.stock <= 0 ? ' · Out of stock' : ''}</div>
       <button class="add ${String(p.category || '').toLowerCase() === 'personalize' ? 'personalize-add' : ''}" ${p.stock <= 0 ? 'disabled' : ''} onclick="${String(p.category || '').toLowerCase() === 'personalize' ? `openPersonalizeForProduct(${p.id})` : `addToCart(${p.id})`}">${p.stock <= 0 ? 'Out of Stock' : (String(p.category || '').toLowerCase() === 'personalize' ? 'Customize Your Frame' : 'Add to Cart')}</button>
@@ -362,6 +360,7 @@ async function openCheckout() {
   $('orderEmail').value = currentUser.email || '';
   $('orderPhone').value = currentUser.phone || '';
   $('orderAddress').value = currentUser.address || '';
+  $('frameSize').value = 'A4';
   $('orderUtr').value = '';
   $('orderCoupon').value = '';
   $('couponResult').textContent = '';
@@ -374,7 +373,17 @@ async function openCheckout() {
     personalizeFileName = '';
   } else if (personalizeFileData) {
     $('personalizeFileName').textContent = `Selected: ${personalizeFileName || 'Uploaded image'} (optimized)`;
-  } else if ($('person size = $('frameSize')?.value || 'A4';
+  } else if ($('personalizeLink').value.trim()) {
+    $('personalizeFileName').textContent = 'Pinterest reference selected.';
+  }
+  updatePersonalizeBox();
+  renderCheckoutSummary();
+  openModal('checkoutModal');
+}
+const SIZE_PRICES = { A4:249, A3:399, A2:599, A1:899 };
+function sizePrice(size) { return SIZE_PRICES[size] || SIZE_PRICES.A4; }
+function renderCheckoutSummary(discount = 0, couponCode = '') {
+  const size = $('frameSize')?.value || 'A4';
   const unit = sizePrice(size);
   const subtotal = cart.reduce((s,p) => s + unit*p.quantity, 0);
   const total = Math.max(0, subtotal - discount);
@@ -508,11 +517,13 @@ async function updateOrder(id,status,payment_status) { try { await api(`/api/adm
 async function saveOrderNote(id) { try { await api(`/api/admin/orders/${id}`,{method:'PATCH',body:JSON.stringify({note:$(`note-${id}`).value})}); toast('Order note saved.'); } catch(e){toast(e.message);} }
 function exportOrdersCsv() { const header=['Order','Customer','Email','Phone','Address','UTR','Frame size','Personalization','Personalization value','Subtotal','Discount','Coupon','Total','Status','Payment status','Note','Created']; const rows=adminCache.orders.map(o=>[o.order_number,o.customer_name,o.email,o.phone,o.address,o.utr,o.frame_size||'A4',o.personalization_type||'none',o.personalization_type==='upload'?'uploaded image':(o.personalization_value||''),o.subtotal,o.discount,o.coupon_code,o.total,o.status,o.payment_status,o.note,o.created_at]); const csv=[header,...rows].map(r=>r.map(csvCell).join(',')).join('\r\n'); const blob=new Blob([csv],{type:'text/csv;charset=utf-8'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`thekaxro-orders-${new Date().toISOString().slice(0,10)}.csv`; a.click(); URL.revokeObjectURL(a.href); }
 
+function adminCategoryOptions(selected = 'Minimal') {
+  const active = STORE_CATEGORIES.includes(selected) ? selected : 'Minimal';
+  return STORE_CATEGORIES.map(category => `<option value="${escapeHtml(category)}" ${category === active ? 'selected' : ''}>${escapeHtml(category)}</option>`).join('');
+}
 async function renderAdminProducts() {
   const r=await api('/api/admin/products'); adminCache.products=r.products||[];
-  $('adminContent').innerHTML=`<p class="eyebrow">OWNER ONLY</p><h2>Products & Inventory</h2>${adminNav('products')}<div class="order-item"><strong>Add product</strong><form class="auth-form admin-form" onsubmit="saveProduct(event)"><label>Name<input id="pName" required maxlength="100"></label><label>Description<input id="pDescription" maxlength="500"></label><label>Price<input id="pPrice" type="number" min="1" required></label><label>Stock<input id="pStock" type="number" min="0" value="0"></label><label>Category<select id="pCategory"><option>Anime</option><option>Cars</option><option>Games</option>
-<option>Animals</option>
-<option>Fantasy</option><option>Minimal</option><option>Personalize</option></select></label><label>Image URL<input id="pImage" maxlength="500"></label><button class="button">Add Product</button></form></div><div style="overflow:auto;margin-top:20px"><table class="admin-table"><thead><tr><th>Name</th><th>Price</th><th>Stock</th><th>Category</th><th>Active</th><th>Actions</th></tr></thead><tbody>${adminCache.products.map(p=>`<tr><td><input id="pn-${p.id}" value="${escapeHtml(p.name)}"></td><td><input id="pp-${p.id}" type="number" min="1" value="${p.price}"></td><td><input id="ps-${p.id}" type="number" min="0" value="${p.stock}"></td><td><input id="pc-${p.id}" value="${escapeHtml(p.category||'Minimal')}"></td><td><select id="pa-${p.id}"><option value="1" ${p.active?'selected':''}>Active</option><option value="0" ${!p.active?'selected':''}>Hidden</option></select></td><td><button class="button tiny" onclick="editProduct(${p.id})">Save</button> <button class="button secondary tiny" onclick="deactivateProduct(${p.id})">Hide</button></td></tr>`).join('')}</tbody></table></div>`;
+  $('adminContent').innerHTML=`<p class="eyebrow">OWNER ONLY</p><h2>Products & Inventory</h2>${adminNav('products')}<div class="order-item"><strong>Add product</strong><form class="auth-form admin-form" onsubmit="saveProduct(event)"><label>Name<input id="pName" required maxlength="100"></label><label>Description<input id="pDescription" maxlength="500"></label><label>Price<input id="pPrice" type="number" min="1" required></label><label>Stock<input id="pStock" type="number" min="0" value="0"></label><label>Category<select id="pCategory">${adminCategoryOptions('Minimal')}</select></label><label>Image URL<input id="pImage" maxlength="500"></label><button class="button">Add Product</button></form></div><div style="overflow:auto;margin-top:20px"><table class="admin-table"><thead><tr><th>Name</th><th>Price</th><th>Stock</th><th>Category</th><th>Active</th><th>Actions</th></tr></thead><tbody>${adminCache.products.map(p=>`<tr><td><input id="pn-${p.id}" value="${escapeHtml(p.name)}"></td><td><input id="pp-${p.id}" type="number" min="1" value="${p.price}"></td><td><input id="ps-${p.id}" type="number" min="0" value="${p.stock}"></td><td><select id="pc-${p.id}">${adminCategoryOptions(p.category)}</select></td><td><select id="pa-${p.id}"><option value="1" ${p.active?'selected':''}>Active</option><option value="0" ${!p.active?'selected':''}>Hidden</option></select></td><td><button class="button tiny" onclick="editProduct(${p.id})">Save</button> <button class="button secondary tiny" onclick="deactivateProduct(${p.id})">Hide</button></td></tr>`).join('')}</tbody></table></div>`;
 }
 async function saveProduct(e){e.preventDefault();try{await api('/api/admin/products',{method:'POST',body:JSON.stringify({name:$('pName').value,description:$('pDescription').value,price:$('pPrice').value,stock:$('pStock').value,category:$('pCategory').value,image:$('pImage').value})});toast('Product added.');await renderAdminProducts();}catch(err){toast(err.message);}}
 async function editProduct(id){try{const p=adminCache.products.find(x=>x.id===id)||{};await api(`/api/admin/products/${id}`,{method:'PATCH',body:JSON.stringify({name:$(`pn-${id}`).value,description:p.description||'',image:p.image||'',price:$(`pp-${id}`).value,stock:$(`ps-${id}`).value,category:$(`pc-${id}`).value,active:$(`pa-${id}`).value==='1'})});toast('Product saved.');await renderAdminProducts();}catch(e){toast(e.message);}}

@@ -1,0 +1,11 @@
+THE KAXRO FRAMES STORE
+
+This build changes the storefront from frames to framed wall art.
+
+Frame sizes/prices used at checkout:
+A4 — ₹249
+A3 — ₹399
+A2 — ₹599
+A1 — ₹899
+
+Apply migrations before/when deploying the project.
