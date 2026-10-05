@@ -8,6 +8,7 @@ let personalizeProductId = null;
 let personalizeMode = 'upload';
 let adminCache = { orders: [], products: [], customers: [], coupons: [], settings: {} };
 const STORE_CATEGORIES = ['Anime','Games','Cars','Minimal','Animals','Fantasy','Personalize'];
+const SIZE_PRICES = { A4:249, A3:399, A2:599, A1:899 };
 const $ = id => document.getElementById(id);
 const money = n => `₹${Number(n || 0).toLocaleString('en-IN')}`;
 
@@ -132,7 +133,7 @@ function renderProducts() {
       <button class="wish" aria-label="Save ${escapeHtml(p.name)}" onclick="toggleWishlist(${p.id})">${wishlist.has(p.id) ? 'Saved' : 'Save'}</button>
       <div class="card-img">${p.image ? `<img loading="lazy" src="${escapeHtml(p.image)}" alt="${escapeHtml(p.name)}" onerror="this.style.display='none';this.nextElementSibling.hidden=false"><div class="placeholder" hidden>Frame</div>` : '<div class="placeholder">Frame</div>'}</div>
       <h3>${escapeHtml(p.name)}</h3>
-      <div class="price">${money(p.price)}${p.stock <= 0 ? ' · Out of stock' : ''}</div>
+      <div class="price">From ${money(SIZE_PRICES.A4)}${p.stock <= 0 ? ' · Out of stock' : ''}</div>
       <button class="add ${String(p.category || '').toLowerCase() === 'personalize' ? 'personalize-add' : ''}" ${p.stock <= 0 ? 'disabled' : ''} onclick="${String(p.category || '').toLowerCase() === 'personalize' ? `openPersonalizeForProduct(${p.id})` : `addToCart(${p.id})`}">${p.stock <= 0 ? 'Out of Stock' : (String(p.category || '').toLowerCase() === 'personalize' ? 'Customize Your Frame' : 'Add to Cart')}</button>
     </article>`).join('') : '<p class="muted">No frames found in this category yet.</p>';
 }

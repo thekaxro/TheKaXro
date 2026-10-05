@@ -1,0 +1,1 @@
+KaXro pricing fixed. Product cards show From ₹249 (A4). Checkout uses A4 ₹249, A3 ₹399, A2 ₹599, A1 ₹899. Migration 0011 normalizes stored product base prices to ₹249. Apply migrations remotely.
